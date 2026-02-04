@@ -328,22 +328,22 @@ Imagine throwing darts at a target.
 
         % 1. Low Bias, Low Var (Tight cluster in center)
         \bullseye{0}{0}
-        \foreach \i in {1,...,10} \fill[blue] (rand*0.15, rand*0.15) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (0 + rand*0.05, 0 + rand*0.05) circle (2pt);
         \node[below] at (0,-1.2) {Low Bias, Low Var};
 
         % 2. High Bias, Low Var (Tight cluster off-center)
         \bullseye{4}{0}
-        \foreach \i in {1,...,10} \fill[blue] (4+0.6+rand*0.15, 0.6+rand*0.15) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (4 + 0.6 + rand*0.05, 0.6 + rand*0.05) circle (2pt);
         \node[below] at (4,-1.2) {High Bias, Low Var};
 
         % 3. Low Bias, High Var (Spread out around center)
         \bullseye{0}{-4}
-        \foreach \i in {1,...,10} \fill[blue] (rand*0.6, rand*0.6) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (0 + rand*0.7, 0 + rand*0.7) circle (2pt);
         \node[below] at (0,-5.2) {Low Bias, High Var};
 
         % 4. High Bias, High Var (Spread out off-center)
         \bullseye{4}{-4}
-        \foreach \i in {1,...,10} \fill[blue] (4+0.6+rand*0.6, 0.6+rand*0.6) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (4 + 0.6 + rand*0.7, 0.6 + rand*0.7) circle (2pt);
         \node[below] at (4,-5.2) {High Bias, High Var};
     \end{tikzpicture}
     \caption{Visualizing Bias and Variance. The blue dots represent different models trained on different datasets.}
