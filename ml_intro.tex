@@ -80,7 +80,7 @@ Today, the distinction is blurry. We use the terms interchangeably to refer to t
 
 \section{Why Do We Need a Model?}
 
-In the real world, we often observe an output variable $Y$ (also called the \textit{response} or \textit{target}) associated with input variables $X$ (also called \textit{features} or \textit{predictors}). We assume there is some underlying relationship between them, which we can write as:
+In the real world, we often observe an output variable $Y$ (also called the \textit{response} or \textit{target}) associated with a vector of input variables $X = (X_1, X_2, \dots, X_p)$ (also called \textit{features} or \textit{predictors}). We assume there is some underlying, fixed but unknown relationship between them, which we can write as:
 
 \begin{equation}
     Y = f(X) + \epsilon
@@ -88,19 +88,19 @@ In the real world, we often observe an output variable $Y$ (also called the \tex
 
 Here:
 \begin{itemize}
-    \item $f$ is the true, unknown function that connects inputs to outputs.
-    \item $\epsilon$ is the \textbf{random error term}, independent of $X$. It represents noise or unmeasured variables.
+    \item $f: \mathbb{R}^p \to \mathbb{R}$ is the true, unknown function that systematically connects inputs to outputs.
+    \item $\epsilon$ is the \textbf{random error term}, independent of $X$ and with mean zero ($E[\epsilon] = 0$). It represents noise, measurement errors, or unmeasured variables that affect $Y$ but are not in $X$.
 \end{itemize}
 
 \begin{examplebox}{Predicting Housing Prices}
-Imagine we want to predict the price of a house ($Y$). The inputs ($X$) might be:
+Imagine we want to predict the price of a house ($Y$). The inputs ($X \in \mathbb{R}^3$) might be:
 \begin{itemize}
-    \item $X_1$: Square footage
-    \item $X_2$: Number of bedrooms
-    \item $X_3$: Distance to the city center
+    \item $X_1$: Square footage (Continuous)
+    \item $X_2$: Number of bedrooms (Discrete)
+    \item $X_3$: Distance to the city center (Continuous)
 \end{itemize}
 
-The "true" relationship $f$ might be complex: "Add \$200 for every square foot, but subtract \$10,000 for every mile from the city." The error $\epsilon$ captures things we didn't measure, like whether the previous owner was a smoker or if the house was renovated recently.
+The "true" relationship $f$ might be complex and non-linear: "Add \$200 for every square foot, but subtract \$10,000 for every mile from the city, interacting with the neighborhood quality." The error $\epsilon$ captures things we didn't measure, like whether the previous owner was a smoker or if the house was renovated recently.
 \end{examplebox}
 
 We estimate $f$ for two main reasons: \textbf{Prediction} and \textbf{Inference}.
@@ -133,9 +133,16 @@ No matter how good our model $\hat{f}$ is, we can never perfectly predict $Y$ be
 "Learning" basically means using a set of observed data (the \textbf{Training Data}) to calculate the best possible $\hat{f}$.
 
 Suppose we have $n$ observations:
-\[ \{(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)\} \]
+\[ \mathcal{T} = \{(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)\} \]
+where each $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$.
 
-Our goal is to apply a learning algorithm to this data to find a function $\hat{f}$ such that $Y \approx \hat{f}(X)$ for any new observation $(X, Y)$.
+Our goal is to find a function $\hat{f}$ such that $Y \approx \hat{f}(X)$ for any new observation $(X, Y)$. Formally, we want to minimize a \textbf{Loss Function} $L(Y, \hat{f}(X))$, which quantifies the "cost" of a bad prediction.
+
+\begin{mathbox}{Empirical Risk Minimization}
+We cannot directly minimize the error on future data (because we don't have it yet!). Instead, we minimize the \textbf{Empirical Risk} (the average loss on our training data):
+\[ \hat{f} = \underset{f \in \mathcal{H}}{\text{argmin}} \frac{1}{n} \sum_{i=1}^{n} L(y_i, f(x_i)) \]
+where $\mathcal{H}$ is the hypothesis space (the set of all possible functions our model can learn).
+\end{mathbox}
 
 \section{Approaches to Estimating $f$}
 
@@ -146,8 +153,12 @@ This approach reduces the problem of estimating $f$ to estimating a set of param
 \begin{enumerate}
     \item \textbf{Assumption}: We assume a functional form for $f$. For example, we might assume $f$ is linear:
     \[ f(X) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_p X_p \]
-    \item \textbf{Fitting}: We use the training data to fit (estimate) the coefficients $\beta_0, \beta_1, \dots, \beta_p$. Common methods include Ordinary Least Squares (OLS).
+    \item \textbf{Fitting}: We use the training data to fit (estimate) the coefficients $\beta_0, \beta_1, \dots, \beta_p$.
 \end{enumerate}
+
+The most common method is \textbf{Ordinary Least Squares (OLS)}. We look for the coefficients $\hat{\beta}$ that minimize the sum of squared differences between the observed values and the predicted linear values:
+\[ \hat{\beta} = \underset{\beta}{\text{argmin}} \sum_{i=1}^{n} (y_i - \beta^T x_i)^2 \]
+This optimization problem has a beautiful "closed-form" solution (calculated using matrix algebra) that guarantees the best linear fit.
 
 \begin{intuitionbox}{Parametric Tradeoff}
 \textbf{Pros:} Simple, easy to interpret, requires less data. \\
@@ -155,7 +166,10 @@ This approach reduces the problem of estimating $f$ to estimating a set of param
 \end{intuitionbox}
 
 \subsection{Non-Parametric Methods}
-Non-parametric methods do not make explicit assumptions about the functional form of $f$. Instead, they seek an estimate that is as close to the data points as possible without being too rough or wiggly. Examples include K-Nearest Neighbors (KNN) and Splines.
+Non-parametric methods do not make explicit assumptions about the functional form of $f$. Instead, they seek an estimate that is as close to the data points as possible without being too rough or wiggly.
+
+A classic example is \textbf{K-Nearest Neighbors (KNN)}. For any given input $x_0$, KNN identifies the $K$ points in the training data that are closest to $x_0$ (represented by the set $\mathcal{N}_0$). It then estimates $f(x_0)$ as the average of the response values for these neighbors:
+\[ \hat{f}(x_0) = \frac{1}{K} \sum_{x_i \in \mathcal{N}_0} y_i \]
 
 \begin{intuitionbox}{Non-Parametric Tradeoff}
 \textbf{Pros:} Can fit a wide range of shapes accurately. \\
@@ -208,18 +222,21 @@ Non-parametric methods do not make explicit assumptions about the functional for
 There is no "free lunch" in statistics: no one method dominates all others over all possible datasets. To choose the best model, we need to measure how well it performs.
 
 \subsection{Training vs. Test Error}
-In regression settings, the most common quality measure is the \textbf{Mean Squared Error (MSE)}:
-\[ MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{f}(x_i))^2 \]
+In regression settings, the most common quality measure is the \textbf{Mean Squared Error (MSE)}. For the training data $\mathcal{T}$, the \textbf{Training MSE} is:
+\[ MSE_{Tr} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{f}(x_i))^2 \]
 
-However, we don't care about the \textbf{Training MSE} (how well we fit the data we have). We care about the \textbf{Test MSE} (how well we predict \textit{future} data).
+However, we are interested in the accuracy of $\hat{f}$ on \textit{unseen} test data. If $(x_0, y_0)$ is a new observation drawn from the population, the \textbf{Test MSE} is:
+\[ MSE_{Te} = E[(y_0 - \hat{f}(x_0))^2] \]
+where the expectation averages over the randomness in the new data point.
 
 \begin{intuitionbox}{The Student Analogy}
 Imagine a student preparing for an exam.
 \begin{itemize}
-    \item \textbf{Training Data:} The textbook practice problems.
-    \item \textbf{Training Error:} How many practice problems the student gets wrong.
-    \item \textbf{Test Data:} The actual exam questions (which differ from the book).
-    \item \textbf{Generalization Error:} How well the student performs on the exam.
+    \item \textbf{Training Data $\mathcal{T}$:} The textbook practice problems.
+    \item \textbf{Model $\hat{f}$:} The student's knowledge (rules they learned).
+    \item \textbf{Training Error:} The score on the textbook problems.
+    \item \textbf{Test Data $(X_{new}, Y_{new})$:} The actual exam questions (which differ from the book).
+    \item \textbf{Generalization Error:} The expected score on the exam.
 \end{itemize}
 A student who memorizes the answers to the practice problems (Overfitting) will have near-zero Training Error but huge Test Error!
 \end{intuitionbox}
@@ -245,16 +262,48 @@ When we talk about the "Expected Test MSE" or $E[\hat{f}(x)]$, we are imagining 
 $E[\hat{f}(x)]$ is the \textbf{average curve} obtained across all these infinite universes.
 \end{mathbox}
 
-\subsection{Decomposing the Error}
-Mathematically, it can be shown that the expected test MSE for a given value $x_0$ can be broken down into three terms:
+\subsection{Decomposing the Error: The Mathematical Proof}
 
-\[ E(y_0 - \hat{f}(x_0))^2 = \text{Var}(\hat{f}(x_0)) + [\text{Bias}(\hat{f}(x_0))]^2 + \text{Var}(\epsilon) \]
+Let's rigorously derive the decomposition of the Expected Test MSE at a fixed point $x_0$.
+Recall that $Y = f(x_0) + \epsilon$, where $E[\epsilon] = 0$ and $\text{Var}(\epsilon) = \sigma_\epsilon^2$. We assume $\epsilon$ is independent of $\hat{f}$.
 
-\begin{enumerate}
-    \item \textbf{Bias}: The error introduced by approximating a real-life problem (which may be extremely complicated) by a much simpler model. High bias causes \textbf{Underfitting}.
-    \item \textbf{Variance}: The amount by which $\hat{f}$ would change if we estimated it using a different training data set. High variance causes \textbf{Overfitting}.
-    \item \textbf{Irreducible Error}: The noise $\epsilon$ that we cannot avoid.
-\end{enumerate}
+We want to find $E[(Y - \hat{f}(x_0))^2]$.
+
+\textbf{Step 1: Add and subtract $f(x_0)$.}
+\begin{align*}
+    E[(Y - \hat{f}(x_0))^2] &= E[(f(x_0) + \epsilon - \hat{f}(x_0))^2] \\
+                            &= E[((f(x_0) - \hat{f}(x_0)) + \epsilon)^2]
+\end{align*}
+
+\textbf{Step 2: Expand the square $(A+B)^2 = A^2 + B^2 + 2AB$.}
+\[ = E[(f(x_0) - \hat{f}(x_0))^2 + \epsilon^2 + 2(f(x_0) - \hat{f}(x_0))\epsilon] \]
+
+\textbf{Step 3: Distribute the Expectation (Linearity of $E$).}
+\[ = E[(f(x_0) - \hat{f}(x_0))^2] + E[\epsilon^2] + 2E[(f(x_0) - \hat{f}(x_0))\epsilon] \]
+
+Since $\epsilon$ is independent of $\hat{f}$, $E[(f - \hat{f})\epsilon] = E[f - \hat{f}] \cdot E[\epsilon]$.
+Since $E[\epsilon] = 0$, this whole cross-term vanishes.
+Also, $E[\epsilon^2] = \text{Var}(\epsilon) + (E[\epsilon])^2 = \sigma_\epsilon^2$.
+
+So we are left with:
+\[ = E[(f(x_0) - \hat{f}(x_0))^2] + \sigma_\epsilon^2 \]
+
+\textbf{Step 4: Expand the remaining term.}
+Now consider $E[(f(x_0) - \hat{f}(x_0))^2]$. We add and subtract $E[\hat{f}(x_0)]$ inside:
+\begin{align*}
+    E[(f(x_0) - E[\hat{f}(x_0)] + E[\hat{f}(x_0)] - \hat{f}(x_0))^2]
+\end{align*}
+Let $A = f(x_0) - E[\hat{f}(x_0)]$ (This is the Bias, a constant).
+Let $B = E[\hat{f}(x_0)] - \hat{f}(x_0)$ (This is the deviation from the mean).
+
+Expanding $(A+B)^2$ again:
+\[ = \underbrace{(f(x_0) - E[\hat{f}(x_0)])^2}_{\text{Bias}^2} + \underbrace{E[(E[\hat{f}(x_0)] - \hat{f}(x_0))^2]}_{\text{Variance}} + \underbrace{2(f(x_0) - E[\hat{f}(x_0)]) E[E[\hat{f}(x_0)] - \hat{f}(x_0)]}_{\text{Zero}} \]
+The cross-term is zero because $E[E[\hat{f}] - \hat{f}] = E[\hat{f}] - E[\hat{f}] = 0$.
+
+\textbf{Final Result:}
+\begin{equation}
+    E[(y_0 - \hat{f}(x_0))^2] = \underbrace{[\text{Bias}(\hat{f}(x_0))]^2}_{\text{Systematic Error}} + \underbrace{\text{Var}(\hat{f}(x_0))}_{\text{Estimation Error}} + \underbrace{\text{Var}(\epsilon)}_{\text{Irreducible Error}}
+\end{equation}
 
 \begin{intuitionbox}{The Bullseye Analogy}
 Imagine throwing darts at a target.
@@ -277,27 +326,27 @@ Imagine throwing darts at a target.
             \node[circle, draw, minimum size=0.5cm, fill=red!20] at (#1, #2) {};
         }
 
-        % 1. Low Bias, Low Var
+        % 1. Low Bias, Low Var (Tight cluster in center)
         \bullseye{0}{0}
-        \foreach \i in {1,...,5} \fill[blue] (rand*0.1, rand*0.1) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (rand*0.15, rand*0.15) circle (2pt);
         \node[below] at (0,-1.2) {Low Bias, Low Var};
 
-        % 2. High Bias, Low Var
+        % 2. High Bias, Low Var (Tight cluster off-center)
         \bullseye{4}{0}
-        \foreach \i in {1,...,5} \fill[blue] (4+0.5+rand*0.1, 0.5+rand*0.1) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (4+0.6+rand*0.15, 0.6+rand*0.15) circle (2pt);
         \node[below] at (4,-1.2) {High Bias, Low Var};
 
-        % 3. Low Bias, High Var
+        % 3. Low Bias, High Var (Spread out around center)
         \bullseye{0}{-4}
-        \foreach \i in {1,...,5} \fill[blue] (rand*0.4, rand*0.4) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (rand*0.6, rand*0.6) circle (2pt);
         \node[below] at (0,-5.2) {Low Bias, High Var};
 
-        % 4. High Bias, High Var
+        % 4. High Bias, High Var (Spread out off-center)
         \bullseye{4}{-4}
-        \foreach \i in {1,...,5} \fill[blue] (4+0.5+rand*0.4, 0.5+rand*0.4) circle (2pt);
+        \foreach \i in {1,...,10} \fill[blue] (4+0.6+rand*0.6, 0.6+rand*0.6) circle (2pt);
         \node[below] at (4,-5.2) {High Bias, High Var};
     \end{tikzpicture}
-    \caption{Visualizing Bias and Variance using the Bullseye analogy.}
+    \caption{Visualizing Bias and Variance. The blue dots represent different models trained on different datasets.}
 \end{figure}
 
 \subsection{The Tradeoff}
@@ -360,24 +409,35 @@ Consider a model trying to predict if a patient has a disease based on Age and B
 Since we often have limited data, we cannot afford to set aside a large chunk just for testing. \textbf{Cross-Validation} solves this by efficiently using the available training data to estimate the Test MSE.
 
 \subsection{Leave-One-Out Cross-Validation (LOOCV)}
-For every single data point $i$:
+LOOCV is a special case of K-Fold where $K=n$. For every single data point $i$:
 \begin{enumerate}
     \item Train the model on all data \textit{except} point $i$.
-    \item Test the model on point $i$ to get $MSE_i$.
+    \item Test the model on point $i$ to get $MSE_i = (y_i - \hat{f}_{-i}(x_i))^2$.
 \end{enumerate}
 The final estimate is the average of all $n$ MSEs.
 \[ CV_{(n)} = \frac{1}{n} \sum_{i=1}^n MSE_i \]
-\textbf{Pros:} Almost no bias.\\
-\textbf{Cons:} Computationally expensive (must fit the model $n$ times).
+\textbf{Bias-Variance Profile:}
+\begin{itemize}
+    \item \textbf{Bias (Low):} We train on $n-1$ points, which is almost as good as training on all $n$ points.
+    \item \textbf{Variance (High):} We are averaging the outputs of $n$ models. However, these models are trained on almost identical datasets (they share $n-2$ points). Because the model outputs are highly correlated, their average has higher variance than averaging outputs from less correlated models.
+\end{itemize}
 
 \subsection{K-Fold Cross-Validation}
-This is the gold standard. We randomly divide the data into $K$ equal-sized parts (folds). For each fold $k$ (from 1 to $K$):
+This is the gold standard. We randomly divide the data into $K$ equal-sized parts (folds) $C_1, C_2, \dots, C_K$. For each fold $k$ (from 1 to $K$):
 \begin{enumerate}
-    \item Treat fold $k$ as the Test Set.
+    \item Treat fold $C_k$ as the Test Set.
     \item Train on the remaining $K-1$ folds.
-    \item Calculate MSE on fold $k$.
+    \item Calculate MSE on fold $k$: $MSE_k = \frac{1}{|C_k|} \sum_{i \in C_k} (y_i - \hat{f}_{-k}(x_i))^2$.
 \end{enumerate}
-The final estimate is the average of the $K$ MSEs. Common values for $K$ are 5 or 10.
+The final estimate is the average of the $K$ MSEs:
+\[ CV_{(K)} = \frac{1}{K} \sum_{k=1}^K MSE_k \]
+
+\textbf{Bias-Variance Profile (vs LOOCV):}
+\begin{itemize}
+    \item \textbf{Bias (Higher):} We train on fewer points ($(K-1)/K \times n$), so the model is slightly worse.
+    \item \textbf{Variance (Lower):} The overlap between training sets is smaller than in LOOCV, leading to less correlated models and a more stable estimate of the test error.
+\end{itemize}
+Common values for $K$ are 5 or 10, which empirically provide the best trade-off.
 
 \begin{figure}[h]
     \centering
