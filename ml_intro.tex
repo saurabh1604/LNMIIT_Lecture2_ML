@@ -305,50 +305,6 @@ The cross-term is zero because $E[E[\hat{f}] - \hat{f}] = E[\hat{f}] - E[\hat{f}
     E[(y_0 - \hat{f}(x_0))^2] = \underbrace{[\text{Bias}(\hat{f}(x_0))]^2}_{\text{Systematic Error}} + \underbrace{\text{Var}(\hat{f}(x_0))}_{\text{Estimation Error}} + \underbrace{\text{Var}(\epsilon)}_{\text{Irreducible Error}}
 \end{equation}
 
-\begin{intuitionbox}{The Bullseye Analogy}
-Imagine throwing darts at a target.
-\begin{itemize}
-    \item \textbf{Low Bias, Low Variance:} You consistently hit the bullseye. (Ideal Model).
-    \item \textbf{High Bias, Low Variance:} You consistently hit a spot far from the center. (Wrong assumptions, but stable).
-    \item \textbf{Low Bias, High Variance:} You are all over the place, but on average you are centered. (Sensitive to wind/noise).
-    \item \textbf{High Bias, High Variance:} You are all over the place and off-center. (The worst scenario).
-\end{itemize}
-\end{intuitionbox}
-
-\begin{figure}[h]
-    \centering
-    \begin{tikzpicture}
-        % Define Bullseye drawing command
-        \newcommand{\bullseye}[2]{
-            \node[circle, draw, minimum size=2cm, fill=white] at (#1, #2) {};
-            \node[circle, draw, minimum size=1.5cm] at (#1, #2) {};
-            \node[circle, draw, minimum size=1cm] at (#1, #2) {};
-            \node[circle, draw, minimum size=0.5cm, fill=red!20] at (#1, #2) {};
-        }
-
-        % 1. Low Bias, Low Var (Tight cluster in center)
-        \bullseye{0}{0}
-        \foreach \i in {1,...,10} \fill[blue] (0 + rand*0.05, 0 + rand*0.05) circle (2pt);
-        \node[below] at (0,-1.2) {Low Bias, Low Var};
-
-        % 2. High Bias, Low Var (Tight cluster off-center)
-        \bullseye{4}{0}
-        \foreach \i in {1,...,10} \fill[blue] (4 + 0.6 + rand*0.05, 0.6 + rand*0.05) circle (2pt);
-        \node[below] at (4,-1.2) {High Bias, Low Var};
-
-        % 3. Low Bias, High Var (Spread out around center)
-        \bullseye{0}{-4}
-        \foreach \i in {1,...,10} \fill[blue] (0 + rand*0.7, 0 + rand*0.7) circle (2pt);
-        \node[below] at (0,-5.2) {Low Bias, High Var};
-
-        % 4. High Bias, High Var (Spread out off-center)
-        \bullseye{4}{-4}
-        \foreach \i in {1,...,10} \fill[blue] (4 + 0.6 + rand*0.7, 0.6 + rand*0.7) circle (2pt);
-        \node[below] at (4,-5.2) {High Bias, High Var};
-    \end{tikzpicture}
-    \caption{Visualizing Bias and Variance. The blue dots represent different models trained on different datasets.}
-\end{figure}
-
 \subsection{The Tradeoff}
 As we increase the complexity (flexibility) of a model:
 \begin{itemize}
